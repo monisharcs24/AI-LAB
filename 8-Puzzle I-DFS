@@ -1,125 +1,140 @@
 # 8-Puzzle using Iterative Deepening Search (IDS)
 
-
 def display(state):
-    print("-------------")
     for i in range(0, 9, 3):
-        print("|", state[i], "|", state[i + 1], "|", state[i + 2], "|")
-    print("-------------")
+        print(state[i:i + 3])
+    print()
 
 
-def get_neighbors(state):
+# Generate possible moves
+def get_moves(state):
 
-    neighbors = []
+    moves = []
 
-    # Find blank tile
-    blank = state.index(0)
+    zero = state.index(0)
 
-    row = blank // 3
-    col = blank % 3
+    row = zero // 3
+    col = zero % 3
 
-    # Possible movements
-    moves = [
-        (-1, 0),   # Up
-        (1, 0),    # Down
-        (0, -1),   # Left
-        (0, 1)     # Right
-    ]
+    # UP
+    if row > 0:
+        moves.append(zero - 3)
 
-    for dr, dc in moves:
+    # DOWN
+    if row < 2:
+        moves.append(zero + 3)
 
-        new_row = row + dr
-        new_col = col + dc
+    # LEFT
+    if col > 0:
+        moves.append(zero - 1)
 
-        # Check valid position
-        if 0 <= new_row < 3 and 0 <= new_col < 3:
+    # RIGHT
+    if col < 2:
+        moves.append(zero + 1)
 
-            new_blank = new_row * 3 + new_col
-
-            new_state = list(state)
-
-            # Swap blank and adjacent tile
-            new_state[blank], new_state[new_blank] = \
-                new_state[new_blank], new_state[blank]
-
-            neighbors.append(tuple(new_state))
-
-    return neighbors
+    return moves
 
 
-# ----------------------------------
 # Depth Limited Search
-# ----------------------------------
+def dls(state, goal, limit, path, visited, level_states):
 
-def depth_limited_search(state, goal, limit, path, visited):
+    current_depth = len(path) - 1
+
+    # Store state at its depth
+    if current_depth not in level_states:
+        level_states[current_depth] = []
+
+    level_states[current_depth].append(state)
 
     # Check goal
     if state == goal:
         return path
 
-    # Depth limit reached
+    # Stop if depth limit reached
     if limit == 0:
         return None
 
     visited.add(state)
 
-    # Expand current state
-    for neighbor in get_neighbors(state):
+    zero = state.index(0)
 
-        if neighbor not in visited:
+    # Generate successors
+    for move in get_moves(state):
 
-            result = depth_limited_search(
-                neighbor,
+        new_state = list(state)
+
+        # Swap blank with tile
+        new_state[zero], new_state[move] = \
+            new_state[move], new_state[zero]
+
+        new_state = tuple(new_state)
+
+        # Avoid repeated states
+        if new_state not in visited:
+
+            result = dls(
+                new_state,
                 goal,
                 limit - 1,
-                path + [neighbor],
-                visited
+                path + [new_state],
+                visited,
+                level_states
             )
 
             if result is not None:
                 return result
 
-    # Remove state during backtracking
     visited.remove(state)
 
     return None
 
 
-# ----------------------------------
-# Iterative Deepening Search
-# ----------------------------------
-
-def ids(initial, goal):
+# IDS
+def ids(start, goal):
 
     depth = 0
 
     while True:
 
-        print("Searching at depth:", depth)
+        print("\n================================")
+        print("DEPTH LIMIT:", depth)
+        print("================================")
 
         visited = set()
+        level_states = {}
 
-        result = depth_limited_search(
-            initial,
+        solution = dls(
+            start,
             goal,
             depth,
-            [initial],
-            visited
+            [start],
+            visited,
+            level_states
         )
 
-        # Goal found
-        if result is not None:
-            return result, depth
+        # Print each level
+        for level in sorted(level_states):
 
-        # Increase depth limit
+            print("\nDepth", level)
+
+            for state in level_states[level]:
+                display(state)
+
+        # Check if goal found
+        if solution is not None:
+
+            print("GOAL FOUND AT DEPTH:", depth)
+
+            return solution
+
         depth += 1
 
 
-# ----------------------------------
+# --------------------------------
 # Main Program
-# ----------------------------------
+# --------------------------------
 
-initial = (
+start = (
     1, 2, 3,
     4, 0, 6,
     7, 5, 8
@@ -131,21 +146,21 @@ goal = (
     7, 8, 0
 )
 
+
 print("INITIAL STATE:")
-display(initial)
+display(start)
 
 print("GOAL STATE:")
 display(goal)
 
-solution, depth = ids(initial, goal)
 
-print("\nIDS SOLUTION FOUND")
-print("Depth:", depth)
-print("Number of moves:", len(solution) - 1)
+solution = ids(start, goal)
 
-print("\nSolution Path:")
 
-for step, state in enumerate(solution):
+# Final solution
+print("\n========== FINAL SOLUTION ==========")
 
-    print("\nStep", step)
+for i, state in enumerate(solution):
+
+    print("\nStep", i)
     display(state)
