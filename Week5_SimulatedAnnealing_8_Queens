@@ -1,0 +1,101 @@
+import random
+import math
+
+N = 8
+
+
+# Calculate the number of attacking queen pairs
+def calculate_cost(board):
+    conflicts = 0
+
+    for i in range(N):
+        for j in range(i + 1, N):
+            # Queens attack if they are on the same diagonal
+            if abs(board[i] - board[j]) == abs(i - j):
+                conflicts += 1
+
+    return conflicts
+
+
+# Simulated Annealing algorithm
+def simulated_annealing():
+    # Randomly place one queen in each column
+    board = [random.randint(0, N - 1) for _ in range(N)]
+
+    temperature = 100.0
+    cooling_rate = 0.99
+    min_temperature = 0.001
+    max_iterations = 100000
+
+    current_cost = calculate_cost(board)
+
+    for iteration in range(max_iterations):
+
+        # Check whether a solution is found
+        if current_cost == 0:
+            return board, current_cost
+
+        if temperature < min_temperature:
+            break
+
+        # Select a random column
+        column = random.randint(0, N - 1)
+
+        # Store the current row
+        old_row = board[column]
+
+        # Choose a new row for the queen
+        new_row = random.randint(0, N - 1)
+
+        while new_row == old_row:
+            new_row = random.randint(0, N - 1)
+
+        # Move the queen
+        board[column] = new_row
+
+        # Calculate the new cost
+        new_cost = calculate_cost(board)
+
+        delta = new_cost - current_cost
+
+        # Accept the new state if it is better
+        # or with a probability if it is worse
+        if delta < 0 or random.random() < math.exp(
+            -delta / temperature
+        ):
+            current_cost = new_cost
+        else:
+            # Reject the move and restore the old position
+            board[column] = old_row
+
+        # Reduce the temperature
+        temperature *= cooling_rate
+
+    return board, current_cost
+
+
+# Display the chessboard
+def display_board(board):
+    print("\nChessboard:")
+
+    for row in range(N):
+        for col in range(N):
+            if board[col] == row:
+                print(" Q ", end="")
+            else:
+                print(" . ", end="")
+        print()
+
+
+# Main program
+solution, cost = simulated_annealing()
+
+if cost == 0:
+    print("Solution found!")
+else:
+    print("No solution found within the iteration limit.")
+
+print("Queen positions (row for each column):", solution)
+print("Number of attacking pairs:", cost)
+
+display_board(solution)
