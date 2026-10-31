@@ -1,0 +1,49 @@
+def calculate_cost(board):
+    conflicts = 0
+    n = len(board)
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            if board[i] == board[j] or abs(board[i] - board[j]) == abs(i - j):
+                conflicts += 1
+
+    return conflicts
+
+
+def hill_climbing(board):
+    n = len(board)
+
+    while True:
+        cost = calculate_cost(board)
+        print("State:", board, "Cost:", cost)
+
+        if cost == 0:
+            print("Goal Reached!")
+            return board
+
+        best_board = board[:]
+        best_cost = cost
+
+        for col in range(n):
+            for row in range(n):
+                if row != board[col]:
+                    neighbor = board[:]
+                    neighbor[col] = row
+                    new_cost = calculate_cost(neighbor)
+
+                    if new_cost < best_cost:
+                        best_cost = new_cost
+                        best_board = neighbor[:]
+
+        if best_cost >= cost:
+            print("Local Minimum!")
+            return None
+
+        board = best_board
+
+
+# Main
+initial_board = [0, 0, 0, 0]
+solution = hill_climbing(initial_board)
+
+print("Final Solution:", solution)
