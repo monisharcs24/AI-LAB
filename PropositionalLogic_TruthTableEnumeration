@@ -1,0 +1,32 @@
+
+from itertools import product
+
+def KB(P, Q, R):
+    sentence1 = (not Q) or P       # Q -> P
+    sentence2 = (not P) or (not Q) # P -> not Q
+    sentence3 = Q or R             # Q OR R
+
+    return sentence1 and sentence2 and sentence3
+
+def entails(query):
+    for P, Q, R in product([True, False], repeat=3):
+
+        if KB(P, Q, R):
+            if not query(P, Q, R):
+                return False
+
+    return True
+
+print("P Q R | KB")
+for P, Q, R in product([True, False], repeat=3):
+    print(P, Q, R, "|", KB(P, Q, R))
+
+queries = {
+    "R": lambda P, Q, R: R,
+    "R -> P": lambda P, Q, R: (not R) or P,
+    "Q -> R": lambda P, Q, R: (not Q) or R
+}
+
+print("\nEntailment Results:")
+for name, query in queries.items():
+    print("KB entails", name, ":", entails(query))
