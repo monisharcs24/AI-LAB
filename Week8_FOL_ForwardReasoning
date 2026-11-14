@@ -1,0 +1,85 @@
+
+# Forward Chaining using First Order Logic
+
+# Initial Knowledge Base (Facts)
+facts = [
+    ("American", "Robert"),
+    ("Enemy", "CountryA", "America"),
+    ("Missile", "M1"),
+    ("Owns", "CountryA", "M1")
+]
+
+# Forward Chaining Rules
+def forward_chaining(facts):
+
+    new_fact = True
+
+    while new_fact:
+        new_fact = False
+
+        # Rule 1: Enemy -> Hostile
+        for f in facts[:]:
+            if f[0] == "Enemy":
+                result = ("Hostile", f[1])
+                if result not in facts:
+                    facts.append(result)
+                    print("Derived:", result)
+                    new_fact = True
+
+        # Rule 2: Missile -> Weapon
+        for f in facts[:]:
+            if f[0] == "Missile":
+                result = ("Weapon", f[1])
+                if result not in facts:
+                    facts.append(result)
+                    print("Derived:", result)
+                    new_fact = True
+
+        # Rule 3: Missile and Owns -> Sells
+        for m in facts[:]:
+            for o in facts[:]:
+                if (m[0] == "Missile" and
+                    o[0] == "Owns" and
+                    m[1] == o[2]):
+                    result = ("Sells", "Robert",
+                              m[1], o[1])
+                    if result not in facts:
+                        facts.append(result)
+                        print("Derived:", result)
+                        new_fact = True
+
+        # Rule 4: American + Weapon + Sells + Hostile
+        for a in facts[:]:
+            for w in facts[:]:
+                for s in facts[:]:
+                    for h in facts[:]:
+                        if (a[0] == "American" and
+                            w[0] == "Weapon" and
+                            s[0] == "Sells" and
+                            h[0] == "Hostile" and
+                            a[1] == s[1] and
+                            w[1] == s[2] and
+                            s[3] == h[1]):
+
+                            result = ("Criminal", a[1])
+
+                            if result not in facts:
+                                facts.append(result)
+                                print("Derived:", result)
+                                new_fact = True
+
+    return facts
+
+
+# Execute Forward Chaining
+knowledge_base = forward_chaining(facts)
+
+# Query
+query = ("Criminal", "Robert")
+
+print("\nFinal Result:")
+
+if query in knowledge_base:
+    print("Query Proved: Robert is a Criminal")
+else:
+    print("Query Not Proved")
